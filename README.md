@@ -5,7 +5,7 @@
 ```ts
 import { FoundryComputeModule } from "foundry-compute-module";
 
-interface Functions {
+interface Definitions {
   addOne: {
     query: number;
     response: number;
@@ -16,7 +16,7 @@ interface Functions {
   };
 }
 
-const myModule = new FoundryComputeModule<Functions>({
+const myModule = new FoundryComputeModule<Definitions>({
   logger: console,
 });
 

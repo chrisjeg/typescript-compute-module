@@ -75,9 +75,7 @@ export class FoundryComputeModule<M extends QueryResponseMapping> {
   }
 }
 
-const myModule = new FoundryComputeModule<{
-  test: { query: number; response: string };
-}>({
+const myModule = new FoundryComputeModule({
   logger: console,
 });
 
