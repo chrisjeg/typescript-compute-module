@@ -1,9 +1,6 @@
 import { promises } from "fs";
 
-const CONNECTION_ENV_VAR = "CONNECTION_TO_RUNTIME";
 const READ_POLL_DELAY_MILLIS = 100;
-
-const CONNECTION_INFO_PATH = process.env[CONNECTION_ENV_VAR];
 
 export interface ConnectionInformation {
   host: string;
