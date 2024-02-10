@@ -23,5 +23,5 @@ const myModule = new FoundryComputeModule<Definitions>({
 myModule
   .on("addOne", async (n) => n + 1)
   .on("stringify", async (n) => "" + n)
-  .default(() => ({ __unsupported: true }));
+  .default(() => ({ error: "Unsupported query name" }));
 ```

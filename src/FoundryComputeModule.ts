@@ -13,6 +13,10 @@ import {
 } from "./QueryRunner";
 
 export interface FoundryComputeModuleOptions {
+  /**
+   * Logger to use for logging, if not provided, no logging will be done.
+   * This interface accepts console, winston, or any other object that has the same methods as console.
+   */
   logger?: Logger;
 }
 
@@ -23,7 +27,6 @@ export class FoundryComputeModule<M extends QueryResponseMapping> {
   private logger?: Logger;
   private queryRunner?: QueryRunner<M, keyof M>;
 
-  // TODO: Dont return any
   private listeners: Partial<{
     [K in keyof M]: QueryListener<M>;
   }> = {};
@@ -63,11 +66,22 @@ export class FoundryComputeModule<M extends QueryResponseMapping> {
     this.queryRunner.run();
   }
 
-  public on<T extends keyof M>(event: T, listener: QueryListener<M>) {
-    this.listeners[event] = listener;
+  /**
+   * Adds a listener for a specific query, only one response listener can be added per query
+   * @param queryName Foundry query name to respond to
+   * @param listener Function to run when the query is received
+   * @returns
+   */
+  public on<T extends keyof M>(queryName: T, listener: QueryListener<M>) {
+    this.listeners[queryName] = listener;
     return this;
   }
 
+  /**
+   * Adds a default listener for when no other listener is found for a query
+   * @param listener Function to run when the query is received
+   * @returns
+   */
   public default(listener: (data: any, queryName: string) => any) {
     this.defaultListener = listener;
     this.queryRunner?.updateDefaultListener(listener);
