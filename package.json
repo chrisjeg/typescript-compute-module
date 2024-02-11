@@ -2,8 +2,8 @@
   "name": "foundry-compute-module",
   "version": "1.0.0",
   "description": "Typescript binding for implementing the compute module API",
-  "main": "index.js",
-  "types": "index.d.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
     "test": "echo \"Error: no test specified\" && exit 1"
