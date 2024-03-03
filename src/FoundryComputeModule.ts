@@ -36,6 +36,17 @@ export class FoundryComputeModule<M extends QueryResponseMapping> {
     this.logger = logger;
     const connectionPath = process.env[FoundryComputeModule.CONNECTION_ENV_VAR];
 
+    if (process.env.NODE_ENV === "development") {
+      console.warn("Inactive module - running in dev mode");
+      return;
+    }
+
+    if (!connectionPath) {
+      throw new Error(
+        "Connection path not found in environment variables, please set CONNECTION_TO_RUNTIME to the path of the connection file."
+      );
+    }
+
     readConnectionFile(connectionPath).then((connectionInformation) => {
       this.logger?.info("Connection information loaded");
       this.connectionInformation = connectionInformation;
@@ -72,8 +83,11 @@ export class FoundryComputeModule<M extends QueryResponseMapping> {
    * @param listener Function to run when the query is received
    * @returns
    */
-  public on<T extends keyof M>(queryName: T, listener: QueryListener<M>) {
-    this.listeners[queryName] = listener;
+  public on<T extends keyof M>(
+    queryName: T,
+    listener: QueryListener<{ [P in T]: M[P] }>
+  ) {
+    this.listeners[queryName] = listener as QueryListener<M>;
     return this;
   }
 
@@ -88,9 +102,3 @@ export class FoundryComputeModule<M extends QueryResponseMapping> {
     return this;
   }
 }
-
-const myModule = new FoundryComputeModule({
-  logger: console,
-});
-
-myModule.on("test", async (data) => "Hello " + data);
