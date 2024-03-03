@@ -12,7 +12,7 @@ import {
   QueryRunner,
 } from "./QueryRunner";
 
-export interface FoundryComputeModuleOptions {
+export interface ComputeModuleOptions {
   /**
    * Logger to use for logging, if not provided, no logging will be done.
    * This interface accepts console, winston, or any other object that has the same methods as console.
@@ -20,7 +20,7 @@ export interface FoundryComputeModuleOptions {
   logger?: Logger;
 }
 
-export class FoundryComputeModule<M extends QueryResponseMapping> {
+export class ComputeModule<M extends QueryResponseMapping> {
   private static CONNECTION_ENV_VAR = "CONNECTION_TO_RUNTIME";
 
   private connectionInformation?: ConnectionInformation;
@@ -32,9 +32,9 @@ export class FoundryComputeModule<M extends QueryResponseMapping> {
   }> = {};
   private defaultListener?: (data: any, queryName: string) => Promise<any>;
 
-  constructor({ logger }: FoundryComputeModuleOptions) {
+  constructor({ logger }: ComputeModuleOptions) {
     this.logger = logger;
-    const connectionPath = process.env[FoundryComputeModule.CONNECTION_ENV_VAR];
+    const connectionPath = process.env[ComputeModule.CONNECTION_ENV_VAR];
 
     if (process.env.NODE_ENV === "development") {
       console.warn("Inactive module - running in dev mode");

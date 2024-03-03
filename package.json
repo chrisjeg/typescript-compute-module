@@ -1,5 +1,5 @@
 {
-  "name": "foundry-compute-module",
+  "name": "@chrisjeg/compute-module",
   "version": "1.0.0",
   "description": "Typescript binding for implementing the compute module API",
   "main": "dist/index.js",

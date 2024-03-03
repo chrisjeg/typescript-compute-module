@@ -1,3 +1,3 @@
-export { FoundryComputeModule } from "./FoundryComputeModule";
-export type { FoundryComputeModuleOptions } from "./FoundryComputeModule";
+export { ComputeModule } from "./ComputeModule";
+export type { ComputeModuleOptions } from "./ComputeModule";
 export type { Logger } from "./logger";

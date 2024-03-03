@@ -1,9 +1,9 @@
-# foundry-compute-module
+# Compute Module
 
 ## Basic usage
 
 ```ts
-import { FoundryComputeModule } from "foundry-compute-module";
+import { ComputeModule } from "@chrisjeg/compute-module";
 
 interface Definitions {
   addOne: {
