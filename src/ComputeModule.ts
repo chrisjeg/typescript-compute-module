@@ -47,11 +47,13 @@ export class ComputeModule<M extends QueryResponseMapping> {
       );
     }
 
-    readConnectionFile(connectionPath, logger).then((connectionInformation) => {
-      this.logger?.info("Connection information loaded");
-      this.connectionInformation = connectionInformation;
-      this.initialize();
-    });
+    readConnectionFile(connectionPath, this.logger).then(
+      (connectionInformation) => {
+        this.logger?.info("Connection information loaded");
+        this.connectionInformation = connectionInformation;
+        this.initialize();
+      }
+    );
   }
 
   private async initialize<T extends keyof M>() {
