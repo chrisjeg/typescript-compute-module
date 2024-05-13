@@ -14,11 +14,11 @@ export class QueryRunner<M extends QueryResponseMapping, T extends keyof M> {
   constructor(
     private readonly connectionInformation: ConnectionInformation,
     private readonly axios: AxiosInstance,
-    private readonly logger: Logger,
     private readonly listeners: Partial<{
-      [K in keyof M]: QueryListener<M>;
+      [K in keyof M]: QueryListener<Pick<M, K>>;
     }>,
-    private defaultListener: (query: any, queryType: string) => Promise<any>
+    private defaultListener?: (query: any, queryType: string) => Promise<any>,
+    private readonly logger?: Logger
   ) {}
 
   async run() {

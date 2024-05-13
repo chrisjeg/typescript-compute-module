@@ -3,7 +3,8 @@
     "module": "Node16",
     "target": "ES6",
     "declaration": true,
-    "outDir": "./dist"
+    "outDir": "./dist",
+    "strict": true
   },
   "include": ["src/**/*"]
 }

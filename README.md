@@ -1,5 +1,7 @@
 # Compute Module
 
+Simple implementation of the Compute Module interface.
+
 ## Basic usage
 
 ```ts
@@ -16,7 +18,7 @@ interface Definitions {
   };
 }
 
-const myModule = new FoundryComputeModule<Definitions>({
+const myModule = new ComputeModule<Definitions>({
   logger: console,
 });
 

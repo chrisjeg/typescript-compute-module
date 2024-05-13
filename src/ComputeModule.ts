@@ -1,5 +1,5 @@
 import axios from "axios";
-import { Logger } from "./logger";
+import { Logger, loggerToInstanceLogger } from "./logger";
 import {
   ConnectionInformation,
   readConnectionFile,
@@ -28,12 +28,12 @@ export class ComputeModule<M extends QueryResponseMapping> {
   private queryRunner?: QueryRunner<M, keyof M>;
 
   private listeners: Partial<{
-    [K in keyof M]: QueryListener<M>;
+    [K in keyof M]: QueryListener<Pick<M, K>>;
   }> = {};
   private defaultListener?: (data: any, queryName: string) => Promise<any>;
 
   constructor({ logger }: ComputeModuleOptions) {
-    this.logger = logger;
+    this.logger = logger != null ? loggerToInstanceLogger(logger) : undefined;
     const connectionPath = process.env[ComputeModule.CONNECTION_ENV_VAR];
 
     if (process.env.NODE_ENV === "development") {
@@ -47,7 +47,7 @@ export class ComputeModule<M extends QueryResponseMapping> {
       );
     }
 
-    readConnectionFile(logger, connectionPath).then((connectionInformation) => {
+    readConnectionFile(connectionPath, logger).then((connectionInformation) => {
       this.logger?.info("Connection information loaded");
       this.connectionInformation = connectionInformation;
       this.initialize();
@@ -70,9 +70,9 @@ export class ComputeModule<M extends QueryResponseMapping> {
     this.queryRunner = new QueryRunner<M, T>(
       this.connectionInformation,
       axiosInstance,
-      this.logger,
       this.listeners,
-      this.defaultListener
+      this.defaultListener,
+      this.logger
     );
     this.queryRunner.run();
   }
@@ -85,9 +85,9 @@ export class ComputeModule<M extends QueryResponseMapping> {
    */
   public on<T extends keyof M>(
     queryName: T,
-    listener: QueryListener<{ [P in T]: M[P] }>
+    listener: QueryListener<Pick<M, T>>
   ) {
-    this.listeners[queryName] = listener as QueryListener<M>;
+    this.listeners[queryName] = listener;
     return this;
   }
 

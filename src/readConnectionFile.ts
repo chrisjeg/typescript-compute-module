@@ -19,10 +19,10 @@ export interface ConnectionInformation {
  * @returns
  */
 export const readConnectionFile = async (
-  logger: Logger,
-  path: string
+  path: string,
+  logger?: Logger
 ): Promise<ConnectionInformation> => {
-  logger.info(
+  logger?.info(
     `Attempting reading connection file from ${path} [Poll interval ${READ_POLL_DELAY_MILLIS}ms]`
   );
   const startTime = Date.now();
@@ -30,14 +30,14 @@ export const readConnectionFile = async (
   do {
     try {
       const blob = await promises.readFile(path, "utf-8");
-      logger.info(
+      logger?.info(
         `Successfully read connection file from ${path} after ${
           Date.now() - startTime
         }ms`
       );
       return JSON.parse(blob);
     } catch (e) {
-      logger.error(`Error reading connection file: ${e}`);
+      logger?.error(`Error reading connection file: ${e}`);
       await new Promise((resolve) =>
         setTimeout(resolve, READ_POLL_DELAY_MILLIS)
       );
