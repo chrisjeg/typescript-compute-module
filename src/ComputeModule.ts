@@ -47,7 +47,7 @@ export class ComputeModule<M extends QueryResponseMapping> {
       );
     }
 
-    readConnectionFile(connectionPath).then((connectionInformation) => {
+    readConnectionFile(logger, connectionPath).then((connectionInformation) => {
       this.logger?.info("Connection information loaded");
       this.connectionInformation = connectionInformation;
       this.initialize();
