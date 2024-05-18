@@ -1,6 +1,7 @@
 # @chrisjeg/compute-module
 
-![NPM Version](https://img.shields.io/npm/v/%40chrisjeg%2Fcompute-module)
+<img alt="NPM Version" src="https://img.shields.io/npm/v/%40chrisjeg%2Fcompute-module" href="https://www.npmjs.com/package/@chrisjeg/compute-module"/>
+
 
 Simple implementation of the Compute Module interface.
 
