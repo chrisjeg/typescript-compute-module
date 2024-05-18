@@ -63,7 +63,10 @@ export class ComputeModule<M extends QueryResponseMapping> {
     const axiosInstance = axios.create({
       baseURL: `https://${this.connectionInformation.host}:${this.connectionInformation.port}`,
       httpsAgent: new https.Agent({
-        ca: fs.readFileSync(this.connectionInformation.trustStorePath),
+        ca:
+          this.connectionInformation.trustStorePath != null
+            ? fs.readFileSync(this.connectionInformation.trustStorePath)
+            : undefined,
       }),
       headers: {
         "Module-Auth-Token": this.connectionInformation.moduleAuthToken,
