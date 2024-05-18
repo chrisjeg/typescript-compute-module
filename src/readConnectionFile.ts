@@ -37,13 +37,13 @@ export const readConnectionFile = async (
       );
       return JSON.parse(blob);
     } catch (e) {
-      logger?.error(`Error reading connection file: ${e}`);
+      // The file can take a while to appear, so we retry a few times
+      // logger?.error(`Error reading connection file: ${e}`);
       await new Promise((resolve) =>
         setTimeout(resolve, READ_POLL_DELAY_MILLIS)
       );
     }
   } while (attemptCount++ < MAX_READ_ATTEMPTS);
-
   throw new Error(
     `Failed to read connection file after ${MAX_READ_ATTEMPTS} attempts`
   );
