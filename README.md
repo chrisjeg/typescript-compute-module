@@ -1,4 +1,4 @@
-# Compute Module
+# @chrisjeg/compute-module
 
 Simple implementation of the Compute Module interface.
 
