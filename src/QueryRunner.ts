@@ -46,7 +46,9 @@ export class QueryRunner<M extends QueryResponseMapping, T extends keyof M> {
         }
       } catch (e) {
         if (isAxiosError(e)) {
-          this.logger?.error(`Error running module: ${e.toJSON()}`);
+          this.logger?.error(
+            `Error running module: ${JSON.stringify(e.toJSON())}`
+          );
         } else {
           this.logger?.error(`Error running module: ${e}`);
         }
