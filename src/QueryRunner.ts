@@ -1,4 +1,4 @@
-import { AxiosInstance } from "axios";
+import { AxiosInstance, isAxiosError } from "axios";
 import { Logger } from "./logger";
 import { ConnectionInformation } from "./readConnectionFile";
 
@@ -45,7 +45,11 @@ export class QueryRunner<M extends QueryResponseMapping, T extends keyof M> {
           }
         }
       } catch (e) {
-        this.logger?.error(`Error running module: ${e}`);
+        if (isAxiosError(e)) {
+          this.logger?.error(`Error running module: ${e.toJSON()}`);
+        } else {
+          this.logger?.error(`Error running module: ${e}`);
+        }
       }
     }
   }
