@@ -27,7 +27,7 @@ export interface ComputeModuleOptions<M extends QueryResponseMapping = any> {
    * };
    * ```
    *
-   * If not provided, functions will not be autoregistered.
+   * If not provided, functions will not be autoregistered and typesafety will not be provided.
    */
   definitions?: M;
   /**
