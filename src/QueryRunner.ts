@@ -1,14 +1,15 @@
 import { AxiosInstance, isAxiosError } from "axios";
 import { Logger } from "./logger";
 import { ConnectionInformation } from "./readConnectionFile";
+import { Static, TSchema } from "@sinclair/typebox";
 
 export interface QueryResponseMapping {
-  [queryType: string]: { query: any; response: any };
+  [queryType: string]: { input: TSchema; output: TSchema };
 }
 
 export type QueryListener<M extends QueryResponseMapping> = <T extends keyof M>(
-  message: M[T]["query"]
-) => Promise<M[T]["response"]>;
+  message: Static<M[T]["input"]>
+) => Promise<Static<M[T]["output"]>>;
 
 export class QueryRunner<M extends QueryResponseMapping, T extends keyof M> {
   constructor(
@@ -68,7 +69,7 @@ export class QueryRunner<M extends QueryResponseMapping, T extends keyof M> {
       computeModuleJobV1: {
         jobId: string;
         queryType: T extends string ? T : never;
-        query: M[T]["query"];
+        query: M[T]["input"];
       };
     }>(this.connectionInformation.getJobPath);
   };

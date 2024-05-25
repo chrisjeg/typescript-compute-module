@@ -11,8 +11,25 @@ import {
   QueryResponseMapping,
   QueryRunner,
 } from "./QueryRunner";
+import { Static } from "@sinclair/typebox";
 
-export interface ComputeModuleOptions {
+export interface ComputeModuleOptions<M extends QueryResponseMapping = any> {
+  /**
+   * Definitions for the queries that the module will respond to, defined using typebox.
+   * @example
+   * ```typescript
+   * import { Type } from "@sinclair/typebox";
+   * const definitions = {
+   *    "isFirstName": {
+   *        input: Type.String(),
+   *        output: Type.Boolean(),
+   *      },
+   * };
+   * ```
+   *
+   * If not provided, functions will not be autoregistered.
+   */
+  definitions?: M;
   /**
    * Logger to use for logging, if not provided, no logging will be done.
    * This interface accepts console, winston, or any other object that has the same methods as console.
@@ -32,7 +49,7 @@ export class ComputeModule<M extends QueryResponseMapping> {
   }> = {};
   private defaultListener?: (data: any, queryName: string) => Promise<any>;
 
-  constructor({ logger }: ComputeModuleOptions) {
+  constructor({ logger }: ComputeModuleOptions<M>) {
     this.logger = logger != null ? loggerToInstanceLogger(logger) : undefined;
     const connectionPath = process.env[ComputeModule.CONNECTION_ENV_VAR];
 
@@ -90,7 +107,7 @@ export class ComputeModule<M extends QueryResponseMapping> {
    */
   public on<T extends keyof M>(
     queryName: T,
-    listener: QueryListener<Pick<M, T>>
+    listener: (data: Static<M[T]["input"]>) => Promise<Static<M[T]["output"]>>
   ) {
     this.listeners[queryName] = listener;
     return this;
