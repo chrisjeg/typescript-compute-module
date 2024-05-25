@@ -110,7 +110,7 @@ export class ComputeModule<M extends QueryResponseMapping> {
    * @param listener Function to run when the query is received
    * @returns
    */
-  public default(listener: (data: any, queryName: string) => any) {
+  public default(listener: (data: any, queryName: string) => Promise<any>) {
     this.defaultListener = listener;
     this.queryRunner?.updateDefaultListener(listener);
     return this;
