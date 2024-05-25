@@ -12,6 +12,7 @@ import {
   QueryRunner,
 } from "./QueryRunner";
 import { Static } from "@sinclair/typebox";
+import { ComputeModuleApi } from "./ComputeModuleApi";
 
 export interface ComputeModuleOptions<M extends QueryResponseMapping = any> {
   /**
@@ -42,7 +43,7 @@ export class ComputeModule<M extends QueryResponseMapping> {
 
   private connectionInformation?: ConnectionInformation;
   private logger?: Logger;
-  private queryRunner?: QueryRunner<M, keyof M>;
+  private queryRunner?: QueryRunner<M>;
 
   private listeners: Partial<{
     [K in keyof M]: QueryListener<Pick<M, K>>;
@@ -73,29 +74,20 @@ export class ComputeModule<M extends QueryResponseMapping> {
     );
   }
 
-  private async initialize<T extends keyof M>() {
+  private async initialize() {
     if (!this.connectionInformation) {
       throw new Error("Connection information not loaded");
     }
-    const axiosInstance = axios.create({
-      baseURL: `https://${this.connectionInformation.host}:${this.connectionInformation.port}`,
-      httpsAgent: new https.Agent({
-        ca:
-          this.connectionInformation.trustStorePath != null
-            ? fs.readFileSync(this.connectionInformation.trustStorePath)
-            : undefined,
-      }),
-      headers: {
-        "Module-Auth-Token": this.connectionInformation.moduleAuthToken,
-      },
-    });
-    this.queryRunner = new QueryRunner<M, T>(
-      this.connectionInformation,
-      axiosInstance,
+    const computeModuleApi = new ComputeModuleApi(this.connectionInformation);
+    this.queryRunner = new QueryRunner<M>(
+      computeModuleApi,
       this.listeners,
       this.defaultListener,
       this.logger
     );
+    this.queryRunner.on("responsive", () => {
+      this.logger?.info("Module is responsive");
+    });
     this.queryRunner.run();
   }
 

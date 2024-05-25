@@ -1,7 +1,7 @@
-import { AxiosInstance, isAxiosError } from "axios";
+import { isAxiosError } from "axios";
 import { Logger } from "./logger";
-import { ConnectionInformation } from "./readConnectionFile";
 import { Static, TSchema } from "@sinclair/typebox";
+import { ComputeModuleApi } from "./ComputeModuleApi";
 
 export interface QueryResponseMapping {
   [queryType: string]: { input: TSchema; output: TSchema };
@@ -11,10 +11,13 @@ export type QueryListener<M extends QueryResponseMapping> = <T extends keyof M>(
   message: Static<M[T]["input"]>
 ) => Promise<Static<M[T]["output"]>>;
 
-export class QueryRunner<M extends QueryResponseMapping, T extends keyof M> {
+export class QueryRunner<M extends QueryResponseMapping> {
+  private isResponsive = false;
+
+  private responsiveListeners: Array<() => void> = [];
+
   constructor(
-    private readonly connectionInformation: ConnectionInformation,
-    private readonly axios: AxiosInstance,
+    private readonly computeModuleApi: ComputeModuleApi,
     private readonly listeners: Partial<{
       [K in keyof M]: QueryListener<Pick<M, K>>;
     }>,
@@ -25,21 +28,26 @@ export class QueryRunner<M extends QueryResponseMapping, T extends keyof M> {
   async run() {
     while (true) {
       try {
-        const jobRequest = await this.getJobRequest();
+        const jobRequest = await this.computeModuleApi.getJobRequest();
 
         if (jobRequest.status === 200) {
+          // If this is the first job, set the module as responsive
+          if (!this.isResponsive) {
+            this.setResponsive();
+          }
+
           const { query, queryType, jobId } =
             jobRequest.data.computeModuleJobV1;
-          this.logger?.info("Job received - ID: " + jobId);
+          this.logger?.info(`Job received - ID: ${jobId} Query: ${queryType}`);
           const listener = this.listeners[queryType];
 
           if (listener != null) {
             listener(query).then((response) =>
-              this.postResult(jobId, response)
+              this.computeModuleApi.postResult(jobId, response)
             );
           } else if (this.defaultListener != null) {
             this.defaultListener(query, queryType).then((response) =>
-              this.postResult(jobId, response)
+              this.computeModuleApi.postResult(jobId, response)
             );
           } else {
             this.logger?.error(`No listener for query type: ${queryType}`);
@@ -57,32 +65,22 @@ export class QueryRunner<M extends QueryResponseMapping, T extends keyof M> {
     }
   }
 
+  public on(_eventName: "responsive", listener: () => void) {
+    if (this.isResponsive) {
+      listener();
+    } else {
+      this.responsiveListeners.push(listener);
+    }
+  }
+
+  private setResponsive() {
+    this.isResponsive = true;
+    this.responsiveListeners.forEach((listener) => listener());
+  }
+
   public updateDefaultListener(
     defaultListener: (query: any, queryType: string) => Promise<any>
   ) {
     this.defaultListener = defaultListener;
   }
-
-  private getJobRequest = async () => {
-    return this.axios.get<{
-      type: "computeModuleJobV1";
-      computeModuleJobV1: {
-        jobId: string;
-        queryType: T extends string ? T : never;
-        query: M[T]["input"];
-      };
-    }>(this.connectionInformation.getJobPath);
-  };
-
-  private postResult = async (jobId: string, response: any) => {
-    return this.axios.post(
-      `${this.connectionInformation.postResultPath}/${jobId}`,
-      response,
-      {
-        headers: {
-          "Content-Type": "application/octet-stream",
-        },
-      }
-    );
-  };
 }
