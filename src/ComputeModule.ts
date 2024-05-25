@@ -36,6 +36,10 @@ export interface ComputeModuleOptions<M extends QueryResponseMapping = any> {
    * This interface accepts console, winston, or any other object that has the same methods as console.
    */
   logger?: Logger;
+  /**
+   * Instance ID to use for logging, if not provided, a random UUID will be generated.
+   */
+  instanceId?: string;
 }
 
 export class ComputeModule<M extends QueryResponseMapping> {
@@ -50,8 +54,9 @@ export class ComputeModule<M extends QueryResponseMapping> {
   }> = {};
   private defaultListener?: (data: any, queryName: string) => Promise<any>;
 
-  constructor({ logger }: ComputeModuleOptions<M>) {
-    this.logger = logger != null ? loggerToInstanceLogger(logger) : undefined;
+  constructor({ logger, instanceId }: ComputeModuleOptions<M>) {
+    this.logger =
+      logger != null ? loggerToInstanceLogger(logger, instanceId) : undefined;
     const connectionPath = process.env[ComputeModule.CONNECTION_ENV_VAR];
 
     if (process.env.NODE_ENV === "development") {

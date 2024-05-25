@@ -1,5 +1,3 @@
-import { randomUUID } from "crypto";
-
 export interface Logger {
   log: (message: string) => void;
   error: (message: string) => void;
@@ -8,11 +6,15 @@ export interface Logger {
 }
 
 /**
- * Wraps a logger with an instance ID to differentiate logs from different instances.
+ * Wraps a logger with an instance ID to differentiate logs from different instances if provided
  */
-export const loggerToInstanceLogger = (logger: Logger): Logger => {
-  const instanceId = randomUUID();
-
+export const loggerToInstanceLogger = (
+  logger: Logger,
+  instanceId?: string
+): Logger => {
+  if (instanceId == null) {
+    return logger;
+  }
   return {
     log: (message: string) => logger.log(`[${instanceId}] ${message}`),
     error: (message: string) => logger.error(`[${instanceId}] ${message}`),
