@@ -10,6 +10,7 @@ import {
 } from "./QueryRunner";
 import { Static } from "@sinclair/typebox";
 import { ComputeModuleApi } from "./api/ComputeModuleApi";
+import { convertJsonSchemaToCustomSchema } from "./api/convertJsonSchematoFoundrySchema";
 
 export interface ComputeModuleOptions<M extends QueryResponseMapping = any> {
   /**
@@ -82,6 +83,7 @@ export class ComputeModule<M extends QueryResponseMapping> {
     if (!this.connectionInformation) {
       throw new Error("Connection information not loaded");
     }
+
     const computeModuleApi = new ComputeModuleApi(this.connectionInformation);
     this.queryRunner = new QueryRunner<M>(
       computeModuleApi,
@@ -92,11 +94,16 @@ export class ComputeModule<M extends QueryResponseMapping> {
     this.queryRunner.on("responsive", () => {
       this.logger?.info("Module is responsive");
       if (this.definitions) {
-        Object.entries(this.definitions).forEach(([queryName, query]) => {
-          this.logger?.info(`Registering query: ${queryName}`);
-          this.logger?.info(`Input: ${JSON.stringify(query.input)}`);
-          this.logger?.info(`Output: ${JSON.stringify(query.output)}`);
-        });
+        const schemas = Object.entries(this.definitions).map(
+          ([queryName, query]) =>
+            convertJsonSchemaToCustomSchema(
+              queryName,
+              query.input,
+              query.output
+            )
+        );
+        this.logger?.info(`Posting schemas: ${JSON.stringify(schemas)}`);
+        computeModuleApi.postSchema(schemas);
       }
     });
     this.queryRunner.run();

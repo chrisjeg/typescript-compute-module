@@ -53,10 +53,10 @@ export class ComputeModuleApi {
     );
   };
 
-  public postSchema = async (schema: Schema) => {
+  public postSchema = async (schemas: Schema[]) => {
     return this.axiosInstance.post(
-      this.connectionInformation.basePath + "/schema",
-      schema
+      this.connectionInformation.basePath + "/schemas",
+      schemas
     );
   };
 }

@@ -1,36 +1,41 @@
 export interface Schema {
   name: string;
-  inputType: StructType;
-  outputType: DataType;
+  inputType: Schema.StructType["structType"];
+  outputType: Schema.DataType;
 }
 
-interface StructType {
-  fields: Entry[];
-}
+export namespace Schema {
+  export interface Entry {
+    name: string;
+    type: DataType;
+  }
 
-interface Entry {
-  name: string;
-  type: DataType;
-}
+  export interface StructType {
+    type: "structType";
+    structType: {
+      fields: Entry[];
+    };
+  }
 
-interface ListType {
-  type: "listType";
-  elementType: DataType;
-}
+  export interface ListType {
+    type: "listType";
+    elementType: DataType;
+  }
 
-type DataType = PrimitiveType | ComplexType | UnknownType;
+  export type DataType = PrimitiveType | ComplexType | UnknownType;
 
-interface PrimitiveType {
-  type: "primitiveType";
-  primitiveType: "BOOL" | "INT" | "FLOAT" | "STRING";
-}
+  export interface PrimitiveType {
+    type: "primitiveType";
+    primitiveType: "BOOL" | "INT" | "FLOAT" | "STRING";
+  }
 
-interface ComplexType {
-  type: "complexType";
-  complexType: StructType | ListType;
-}
+  export interface ComplexType {
+    type: "complexType";
+    complexType: StructType | ListType;
+  }
 
-interface UnknownType {
-  type: "unknownType";
-  unknownType: {};
+  export interface UnknownType {
+    type: "unknownType";
+    unknownType: {};
+  }
 }

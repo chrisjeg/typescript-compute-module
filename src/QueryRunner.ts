@@ -1,16 +1,8 @@
 import { isAxiosError } from "axios";
 import { Logger } from "./logger";
-import {
-  Static,
-  TBoolean,
-  TInteger,
-  TNumber,
-  TObject,
-  TString,
-} from "@sinclair/typebox";
+import { Static, TObject } from "@sinclair/typebox";
 import { ComputeModuleApi } from "./api/ComputeModuleApi";
-
-type SupportedTypeboxTypes = TObject | TBoolean | TInteger | TNumber | TString;
+import { SupportedTypeboxTypes } from "./api/convertJsonSchematoFoundrySchema";
 
 export interface QueryResponseMapping {
   [queryType: string]: {
