@@ -3,22 +3,23 @@ import { Logger } from "./logger";
 import { Static, TObject } from "@sinclair/typebox";
 import { ComputeModuleApi } from "./api/ComputeModuleApi";
 import { SupportedTypeboxTypes } from "./api/convertJsonSchematoFoundrySchema";
+import { off } from "process";
 
 export interface QueryResponseMapping {
   [queryType: string]: {
-    input: TObject;
+    input?: TObject;
     output: SupportedTypeboxTypes;
   };
 }
 
 export type QueryListener<M extends QueryResponseMapping> = <T extends keyof M>(
-  message: Static<M[T]["input"]>
+  message: M[T]["input"] extends TObject ? Static<M[T]["input"]> : undefined
 ) => Promise<Static<M[T]["output"]>>;
 
 export class QueryRunner<M extends QueryResponseMapping> {
   private isResponsive = false;
 
-  private responsiveListeners: Array<() => void> = [];
+  private responsiveEventListeners: Set<() => void> = new Set();
 
   constructor(
     private readonly computeModuleApi: ComputeModuleApi,
@@ -73,13 +74,13 @@ export class QueryRunner<M extends QueryResponseMapping> {
     if (this.isResponsive) {
       listener();
     } else {
-      this.responsiveListeners.push(listener);
+      this.responsiveEventListeners.add(listener);
     }
   }
 
   private setResponsive() {
     this.isResponsive = true;
-    this.responsiveListeners.forEach((listener) => listener());
+    this.responsiveEventListeners.forEach((listener) => listener());
   }
 
   public updateDefaultListener(

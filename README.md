@@ -4,6 +4,8 @@
 
 Simple implementation of the Compute Module interface. Definitions are generated using [typebox](https://github.com/sinclairzx81/typebox) allowing the Compute Module to register functions at runtime, while maintaining typesafety at compile time.
 
+This library is dependent on "Runtime V1", if not provided this will not work
+
 ## Basic usage
 
 ```ts

@@ -115,11 +115,18 @@ export class ComputeModule<M extends QueryResponseMapping> {
    * @param listener Function to run when the query is received
    * @returns
    */
-  public on<T extends keyof M>(
-    queryName: T,
-    listener: (data: Static<M[T]["input"]>) => Promise<Static<M[T]["output"]>>
-  ) {
+  public register<T extends keyof M>(queryName: T, listener: QueryListener<M>) {
     this.listeners[queryName] = listener;
+    return this;
+  }
+
+  /**
+   * Adds a listener for events within the compute module
+   * - responsive: When the module is responsive and can receive queries
+   * @returns
+   */
+  public on(_eventName: "responsive", listener: () => void) {
+    this.queryRunner?.on("responsive", listener);
     return this;
   }
 
