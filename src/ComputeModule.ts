@@ -1,18 +1,15 @@
-import axios from "axios";
 import { Logger, loggerToInstanceLogger } from "./logger";
 import {
   ConnectionInformation,
   readConnectionFile,
 } from "./readConnectionFile";
-import fs from "fs";
-import https from "https";
 import {
   QueryListener,
   QueryResponseMapping,
   QueryRunner,
 } from "./QueryRunner";
 import { Static } from "@sinclair/typebox";
-import { ComputeModuleApi } from "./ComputeModuleApi";
+import { ComputeModuleApi } from "./api/ComputeModuleApi";
 
 export interface ComputeModuleOptions<M extends QueryResponseMapping = any> {
   /**
@@ -48,15 +45,17 @@ export class ComputeModule<M extends QueryResponseMapping> {
   private connectionInformation?: ConnectionInformation;
   private logger?: Logger;
   private queryRunner?: QueryRunner<M>;
+  private definitions?: M;
 
   private listeners: Partial<{
     [K in keyof M]: QueryListener<Pick<M, K>>;
   }> = {};
   private defaultListener?: (data: any, queryName: string) => Promise<any>;
 
-  constructor({ logger, instanceId }: ComputeModuleOptions<M>) {
+  constructor({ logger, instanceId, definitions }: ComputeModuleOptions<M>) {
     this.logger =
       logger != null ? loggerToInstanceLogger(logger, instanceId) : undefined;
+    this.definitions = definitions;
     const connectionPath = process.env[ComputeModule.CONNECTION_ENV_VAR];
 
     if (process.env.NODE_ENV === "development") {
@@ -92,6 +91,13 @@ export class ComputeModule<M extends QueryResponseMapping> {
     );
     this.queryRunner.on("responsive", () => {
       this.logger?.info("Module is responsive");
+      if (this.definitions) {
+        Object.entries(this.definitions).forEach(([queryName, query]) => {
+          this.logger?.info(`Registering query: ${queryName}`);
+          this.logger?.info(`Input: ${JSON.stringify(query.input)}`);
+          this.logger?.info(`Output: ${JSON.stringify(query.output)}`);
+        });
+      }
     });
     this.queryRunner.run();
   }

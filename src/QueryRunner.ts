@@ -1,10 +1,22 @@
 import { isAxiosError } from "axios";
 import { Logger } from "./logger";
-import { Static, TSchema } from "@sinclair/typebox";
-import { ComputeModuleApi } from "./ComputeModuleApi";
+import {
+  Static,
+  TBoolean,
+  TInteger,
+  TNumber,
+  TObject,
+  TString,
+} from "@sinclair/typebox";
+import { ComputeModuleApi } from "./api/ComputeModuleApi";
+
+type SupportedTypeboxTypes = TObject | TBoolean | TInteger | TNumber | TString;
 
 export interface QueryResponseMapping {
-  [queryType: string]: { input: TSchema; output: TSchema };
+  [queryType: string]: {
+    input: TObject;
+    output: SupportedTypeboxTypes;
+  };
 }
 
 export type QueryListener<M extends QueryResponseMapping> = <T extends keyof M>(
@@ -46,7 +58,7 @@ export class QueryRunner<M extends QueryResponseMapping> {
               this.computeModuleApi.postResult(jobId, response)
             );
           } else if (this.defaultListener != null) {
-            this.defaultListener(query, queryType).then((response) =>
+            this.defaultListener(query, queryType)?.then((response) =>
               this.computeModuleApi.postResult(jobId, response)
             );
           } else {

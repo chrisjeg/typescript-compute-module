@@ -1,7 +1,8 @@
 import axios from "axios";
 import https from "https";
 import fs from "fs";
-import { ConnectionInformation } from "./readConnectionFile";
+import { ConnectionInformation } from "../readConnectionFile";
+import { Schema } from "./schemaTypes";
 
 interface JobRequest {
   type: "computeModuleJobV1";
@@ -49,6 +50,13 @@ export class ComputeModuleApi {
           "Content-Type": "application/octet-stream",
         },
       }
+    );
+  };
+
+  public postSchema = async (schema: Schema) => {
+    return this.axiosInstance.post(
+      this.connectionInformation.basePath + "/schema",
+      schema
     );
   };
 }

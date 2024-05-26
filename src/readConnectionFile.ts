@@ -9,6 +9,7 @@ export interface ConnectionInformation {
   port: number;
   getJobPath: string;
   postResultPath: string;
+  basePath: string;
   trustStorePath?: string;
   moduleAuthToken: string;
 }
