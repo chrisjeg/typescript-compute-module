@@ -4,7 +4,7 @@
 
 Simple implementation of the Compute Module interface. Definitions are generated using [typebox](https://github.com/sinclairzx81/typebox) allowing the Compute Module to register functions at runtime, while maintaining typesafety at compile time.
 
-This library is dependent on "Runtime V1", if not provided this will not work
+This library is dependent on "Runtime V1", if not provided this will not work.
 
 ## Basic usage
 
@@ -16,11 +16,15 @@ const myModule = new ComputeModule({
   logger: console,
   definitions: {
     addOne: {
-      input: Type.Number(),
-      output: Type.Number(),
+      input: Type.Object({
+        value: Type.Number(),
+      }),
+      output: Type.Object({ value: Type.Number() }),
     },
     stringify: {
-      input: Type.Number(),
+      input: Type.Object({
+        value: Type.Any(),
+      }),
       output: Type.String(),
     },
   },

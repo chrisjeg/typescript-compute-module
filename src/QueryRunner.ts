@@ -61,7 +61,7 @@ export class QueryRunner<M extends QueryResponseMapping> {
       } catch (e) {
         if (isAxiosError(e)) {
           this.logger?.error(
-            `Error running module: ${JSON.stringify(e.toJSON())}`
+            `Error running module - Network Error: ${e.response?.status} ${e.response?.statusText}`
           );
         } else {
           this.logger?.error(`Error running module: ${e}`);
