@@ -8,9 +8,9 @@ import {
   QueryResponseMapping,
   QueryRunner,
 } from "./QueryRunner";
-import { Static } from "@sinclair/typebox";
 import { ComputeModuleApi } from "./api/ComputeModuleApi";
 import { convertJsonSchemaToCustomSchema } from "./api/convertJsonSchematoFoundrySchema";
+import { Static } from "@sinclair/typebox";
 
 export interface ComputeModuleOptions<M extends QueryResponseMapping = any> {
   /**
@@ -115,7 +115,10 @@ export class ComputeModule<M extends QueryResponseMapping> {
    * @param listener Function to run when the query is received
    * @returns
    */
-  public register<T extends keyof M>(queryName: T, listener: QueryListener<M>) {
+  public register<T extends keyof M>(
+    queryName: T,
+    listener: (data: Static<M[T]["input"]>) => Promise<Static<M[T]["output"]>>
+  ) {
     this.listeners[queryName] = listener;
     return this;
   }

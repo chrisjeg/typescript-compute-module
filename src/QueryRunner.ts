@@ -3,17 +3,16 @@ import { Logger } from "./logger";
 import { Static, TObject } from "@sinclair/typebox";
 import { ComputeModuleApi } from "./api/ComputeModuleApi";
 import { SupportedTypeboxTypes } from "./api/convertJsonSchematoFoundrySchema";
-import { off } from "process";
 
 export interface QueryResponseMapping {
   [queryType: string]: {
-    input?: TObject;
+    input: TObject;
     output: SupportedTypeboxTypes;
   };
 }
 
 export type QueryListener<M extends QueryResponseMapping> = <T extends keyof M>(
-  message: M[T]["input"] extends TObject ? Static<M[T]["input"]> : undefined
+  message: Static<M[T]["input"]>
 ) => Promise<Static<M[T]["output"]>>;
 
 export class QueryRunner<M extends QueryResponseMapping> {
