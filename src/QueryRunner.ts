@@ -52,7 +52,11 @@ export class QueryRunner<M extends QueryResponseMapping> {
             );
           } else if (this.defaultListener != null) {
             this.defaultListener(query, queryType)?.then((response) =>
-              this.computeModuleApi.postResult(jobId, response)
+              this.computeModuleApi.postResult(
+                jobId,
+                // Convert number to string as per response spec
+                typeof response === "number" ? response.toString() : response
+              )
             );
           } else {
             this.logger?.error(`No listener for query type: ${queryType}`);
