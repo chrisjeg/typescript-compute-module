@@ -47,7 +47,7 @@ export class ComputeModuleApi {
       response,
       {
         headers: {
-          "Content-Type": "application/json",
+          "Content-Type": "application/octet-stream",
         },
       }
     );
