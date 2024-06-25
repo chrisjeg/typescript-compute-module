@@ -11,6 +11,7 @@ import {
 import { ComputeModuleApi } from "./api/ComputeModuleApi";
 import { convertJsonSchemaToCustomSchema } from "./api/convertJsonSchematoFoundrySchema";
 import { Static } from "@sinclair/typebox";
+import { waitForFile } from "./fs/waitForFile";
 
 export interface ComputeModuleOptions<M extends QueryResponseMapping = any> {
   /**
@@ -42,6 +43,8 @@ export interface ComputeModuleOptions<M extends QueryResponseMapping = any> {
 
 export class ComputeModule<M extends QueryResponseMapping> {
   private static CONNECTION_ENV_VAR = "CONNECTION_TO_RUNTIME";
+  // Path to the Source credentials file in Compute Modules
+  private static SOURCE_CREDENTIALS = "SOURCE_CREDENTIALS";
 
   private connectionInformation?: ConnectionInformation;
   private logger?: Logger;
@@ -79,36 +82,6 @@ export class ComputeModule<M extends QueryResponseMapping> {
     );
   }
 
-  private async initialize() {
-    if (!this.connectionInformation) {
-      throw new Error("Connection information not loaded");
-    }
-
-    const computeModuleApi = new ComputeModuleApi(this.connectionInformation);
-    this.queryRunner = new QueryRunner<M>(
-      computeModuleApi,
-      this.listeners,
-      this.defaultListener,
-      this.logger
-    );
-    this.queryRunner.on("responsive", () => {
-      this.logger?.info("Module is responsive");
-      if (this.definitions) {
-        const schemas = Object.entries(this.definitions).map(
-          ([queryName, query]) =>
-            convertJsonSchemaToCustomSchema(
-              queryName,
-              query.input,
-              query.output
-            )
-        );
-        this.logger?.info(`Posting schemas: ${JSON.stringify(schemas)}`);
-        computeModuleApi.postSchema(schemas);
-      }
-    });
-    this.queryRunner.run();
-  }
-
   /**
    * Adds a listener for a specific query, only one response listener can be added per query
    * @param queryName Foundry query name to respond to
@@ -143,4 +116,44 @@ export class ComputeModule<M extends QueryResponseMapping> {
     this.queryRunner?.updateDefaultListener(listener);
     return this;
   }
+
+  private async initialize() {
+    if (!this.connectionInformation) {
+      throw new Error("Connection information not loaded");
+    }
+
+    const computeModuleApi = new ComputeModuleApi(this.connectionInformation);
+    this.queryRunner = new QueryRunner<M>(
+      computeModuleApi,
+      this.listeners,
+      this.defaultListener,
+      this.logger
+    );
+    this.queryRunner.on("responsive", () => {
+      this.logger?.info("Module is responsive");
+      if (this.definitions) {
+        const schemas = Object.entries(this.definitions).map(
+          ([queryName, query]) =>
+            convertJsonSchemaToCustomSchema(
+              queryName,
+              query.input,
+              query.output
+            )
+        );
+        this.logger?.info(`Posting schemas: ${JSON.stringify(schemas)}`);
+        computeModuleApi.postSchema(schemas);
+      }
+    });
+    this.queryRunner.run();
+  }
+
+  public getCredentials() {
+    const credentialsPath = process.env[ComputeModule.SOURCE_CREDENTIALS];
+    if (credentialsPath == null) {
+      return {};
+    }
+    return waitForFile(credentialsPath);
+  }
+
+
 }
