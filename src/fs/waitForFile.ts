@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 
-export function waitForFile(filePath: string) {
+export function waitForFile<T>(filePath: string): Promise<T> {
   return new Promise((resolve, reject) => {
     // Function to read the file and resolve the promise
     const readFileAndResolve = () => {
