@@ -36,7 +36,7 @@ export interface ComputeModuleOptions<M extends QueryResponseMapping = any> {
    */
   logger?: Logger;
   /**
-   * Instance ID to use for logging, if not provided, a random UUID will be generated.
+   * Instance ID to use for logging, if not provided no instance ID will be added
    */
   instanceId?: string;
 }
