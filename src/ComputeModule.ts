@@ -11,7 +11,7 @@ import {
 import { ComputeModuleApi } from "./api/ComputeModuleApi";
 import { convertJsonSchemaToCustomSchema } from "./api/convertJsonSchematoFoundrySchema";
 import { Static } from "@sinclair/typebox";
-import { waitForFile } from "./fs/waitForFile";
+import { SourceCredentials } from "./sources/SourceCredentials";
 
 export interface ComputeModuleOptions<M extends QueryResponseMapping = any> {
   /**
@@ -46,6 +46,7 @@ export class ComputeModule<M extends QueryResponseMapping> {
   // Path to the Source credentials file in Compute Modules
   private static SOURCE_CREDENTIALS = "SOURCE_CREDENTIALS";
 
+  private sourceCredentials: SourceCredentials | null;
   private connectionInformation?: ConnectionInformation;
   private logger?: Logger;
   private queryRunner?: QueryRunner<M>;
@@ -60,13 +61,16 @@ export class ComputeModule<M extends QueryResponseMapping> {
     this.logger =
       logger != null ? loggerToInstanceLogger(logger, instanceId) : undefined;
     this.definitions = definitions;
-    const connectionPath = process.env[ComputeModule.CONNECTION_ENV_VAR];
+
+    const sourceCredentialsPath = process.env[ComputeModule.SOURCE_CREDENTIALS];
+    this.sourceCredentials = sourceCredentialsPath != null ? new SourceCredentials(sourceCredentialsPath) : null;
 
     if (process.env.NODE_ENV === "development") {
       console.warn("Inactive module - running in dev mode");
       return;
     }
 
+    const connectionPath = process.env[ComputeModule.CONNECTION_ENV_VAR];
     if (!connectionPath) {
       throw new Error(
         "Connection path not found in environment variables, please set CONNECTION_TO_RUNTIME to the path of the connection file."
@@ -147,13 +151,10 @@ export class ComputeModule<M extends QueryResponseMapping> {
     this.queryRunner.run();
   }
 
-  public getCredentials() {
-    const credentialsPath = process.env[ComputeModule.SOURCE_CREDENTIALS];
-    if (credentialsPath == null) {
-      return {};
+  public getCredential(sourceApiName: string, credentialName: string) {
+    if(this.sourceCredentials == null){
+      throw new Error("Source credentials are not available in this Compute Module");
     }
-    return waitForFile(credentialsPath);
+    return this.sourceCredentials.getCredential(sourceApiName, credentialName);
   }
-
-
 }
