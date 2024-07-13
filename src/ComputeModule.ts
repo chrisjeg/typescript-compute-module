@@ -73,7 +73,7 @@ export class ComputeModule<M extends QueryResponseMapping> {
     const connectionPath = process.env[ComputeModule.CONNECTION_ENV_VAR];
     if (!connectionPath) {
       throw new Error(
-        "Connection path not found in environment variables, please set CONNECTION_TO_RUNTIME to the path of the connection file."
+        "Connection path not found in environment variables, please set CONNECTION_TO_RUNTIME to the path of the connection file. This may indicate that the runtime has not been included."
       );
     }
 
