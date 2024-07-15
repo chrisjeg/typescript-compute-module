@@ -1,4 +1,5 @@
 import { waitForFile } from "../../fs/waitForFile";
+import { Logger } from "../../logger";
 import { SourceCredentials, SourceCredentialsFile } from "../SourceCredentials";
 
 // Mock the waitForFile function
@@ -45,4 +46,24 @@ describe("SourceCredentials", () => {
         await sourceCredentials.getCredential("api1", "key2");
         expect(waitForFile).toHaveBeenCalledTimes(1);
     });
+
+    it("should log all the credentials without passwords", async () => {
+        const mockLogger = {
+            log: jest.fn(),
+            info: jest.fn(),
+            error: jest.fn(),
+            warn: jest.fn(),
+        } as Logger
+        const sourceCredentials = new SourceCredentials(mockCredentialPath, mockLogger);
+        await sourceCredentials.getCredential("api1", "key1");
+        await sourceCredentials.getCredential("api1", "key2");
+
+        expect(mockLogger.log).toHaveBeenCalledTimes(1);
+        const loggedMessage = (mockLogger.log as jest.Mock).mock.calls[0][0];
+        expect(loggedMessage).toContain("Loaded credentials");
+
+        expect(loggedMessage).toContain("api1");
+        expect(loggedMessage).toContain("key1");
+        expect(loggedMessage).not.toContain("value");
+    })
 });
