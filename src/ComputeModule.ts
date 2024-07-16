@@ -63,7 +63,7 @@ export class ComputeModule<M extends QueryResponseMapping> {
     this.definitions = definitions;
 
     const sourceCredentialsPath = process.env[ComputeModule.SOURCE_CREDENTIALS];
-    this.sourceCredentials = sourceCredentialsPath != null ? new SourceCredentials(sourceCredentialsPath) : null;
+    this.sourceCredentials = sourceCredentialsPath != null ? new SourceCredentials(sourceCredentialsPath, this.logger) : null;
 
     if (process.env.NODE_ENV === "development") {
       console.warn("Inactive module - running in dev mode");
