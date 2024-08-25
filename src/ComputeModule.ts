@@ -4,21 +4,11 @@ import {
   QueryResponseMapping,
   QueryRunner,
 } from "./QueryRunner";
-import { ComputeModuleApi } from "./api/ComputeModuleApi";
+import { ComputeModuleApi, ConnectionInformation } from "./api/ComputeModuleApi";
 import { convertJsonSchemaToCustomSchema } from "./api/convertJsonSchematoFoundrySchema";
 import { Static } from "@sinclair/typebox";
 import { SourceCredentials } from "./sources/SourceCredentials";
 import { waitForFile } from "./fs/waitForFile";
-
-export interface ConnectionInformation {
-  host: string;
-  port: number;
-  getJobPath: string;
-  postResultPath: string;
-  basePath: string;
-  trustStorePath?: string;
-  moduleAuthToken: string;
-}
 
 export interface ComputeModuleOptions<M extends QueryResponseMapping = any> {
   /**

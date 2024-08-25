@@ -1,8 +1,17 @@
 import axios from "axios";
 import https from "https";
 import fs from "fs";
-import { ConnectionInformation } from "../readConnectionFile";
 import { Schema } from "./schemaTypes";
+
+export interface ConnectionInformation {
+  host: string;
+  port: number;
+  getJobPath: string;
+  postResultPath: string;
+  basePath: string;
+  trustStorePath?: string;
+  moduleAuthToken: string;
+}
 
 interface JobRequest {
   type: "computeModuleJobV1";
