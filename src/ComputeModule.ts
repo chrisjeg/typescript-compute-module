@@ -1,9 +1,5 @@
 import { Logger, loggerToInstanceLogger } from "./logger";
 import {
-  ConnectionInformation,
-  readConnectionFile,
-} from "./readConnectionFile";
-import {
   QueryListener,
   QueryResponseMapping,
   QueryRunner,
@@ -12,6 +8,17 @@ import { ComputeModuleApi } from "./api/ComputeModuleApi";
 import { convertJsonSchemaToCustomSchema } from "./api/convertJsonSchematoFoundrySchema";
 import { Static } from "@sinclair/typebox";
 import { SourceCredentials } from "./sources/SourceCredentials";
+import { waitForFile } from "./fs/waitForFile";
+
+export interface ConnectionInformation {
+  host: string;
+  port: number;
+  getJobPath: string;
+  postResultPath: string;
+  basePath: string;
+  trustStorePath?: string;
+  moduleAuthToken: string;
+}
 
 export interface ComputeModuleOptions<M extends QueryResponseMapping = any> {
   /**
@@ -47,7 +54,6 @@ export class ComputeModule<M extends QueryResponseMapping> {
   private static SOURCE_CREDENTIALS = "SOURCE_CREDENTIALS";
 
   private sourceCredentials: SourceCredentials | null;
-  private connectionInformation?: ConnectionInformation;
   private logger?: Logger;
   private queryRunner: QueryRunner<M>;
   private definitions?: M;
@@ -63,7 +69,10 @@ export class ComputeModule<M extends QueryResponseMapping> {
     this.definitions = definitions;
 
     const sourceCredentialsPath = process.env[ComputeModule.SOURCE_CREDENTIALS];
-    this.sourceCredentials = sourceCredentialsPath != null ? new SourceCredentials(sourceCredentialsPath) : null;
+    this.sourceCredentials =
+      sourceCredentialsPath != null
+        ? new SourceCredentials(sourceCredentialsPath)
+        : null;
 
     this.queryRunner = new QueryRunner<M>(
       this.listeners,
@@ -83,11 +92,10 @@ export class ComputeModule<M extends QueryResponseMapping> {
       );
     }
 
-    readConnectionFile(connectionPath, this.logger).then(
+    waitForFile<ConnectionInformation>(connectionPath).then(
       (connectionInformation) => {
-        this.logger?.info("Connection information loaded");
-        this.connectionInformation = connectionInformation;
-        this.initialize();
+        this.logger?.info("Connection information loaded > Initializing listeners...");
+        this.initialize(connectionInformation);
       }
     );
   }
@@ -127,12 +135,9 @@ export class ComputeModule<M extends QueryResponseMapping> {
     return this;
   }
 
-  private async initialize() {
-    if (!this.connectionInformation) {
-      throw new Error("Connection information not loaded");
-    }
+  private async initialize(connectionInformation: ConnectionInformation) {
+    const computeModuleApi = new ComputeModuleApi(connectionInformation);
 
-    const computeModuleApi = new ComputeModuleApi(this.connectionInformation);
     this.queryRunner.on("responsive", () => {
       this.logger?.info("Module is responsive");
       if (this.definitions) {
@@ -148,11 +153,12 @@ export class ComputeModule<M extends QueryResponseMapping> {
         computeModuleApi.postSchema(schemas);
       }
     });
+
     this.queryRunner.run(computeModuleApi);
   }
 
   public async getCredential(sourceApiName: string, credentialName: string) {
-    if(this.sourceCredentials == null){
+    if (this.sourceCredentials == null) {
       throw new Error(
         "No source credentials mounted. This implies the SOURCE_CREDENTIALS environment variable has not been set, ensure you have set sources mounted on the Compute Module."
       );
