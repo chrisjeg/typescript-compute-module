@@ -148,7 +148,11 @@ export class ComputeModule<M extends QueryResponseMapping> {
             )
         );
         this.logger?.info(`Posting schemas: ${JSON.stringify(schemas)}`);
-        computeModuleApi.postSchema(schemas);
+        try {
+          computeModuleApi.postSchema(schemas);
+        } catch (e) {
+          this.logger?.error(`Error posting schemas: ${e}`);
+        }
       }
     });
 
