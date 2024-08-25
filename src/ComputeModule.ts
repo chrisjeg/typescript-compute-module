@@ -49,7 +49,7 @@ export class ComputeModule<M extends QueryResponseMapping> {
   private sourceCredentials: SourceCredentials | null;
   private connectionInformation?: ConnectionInformation;
   private logger?: Logger;
-  private queryRunner?: QueryRunner<M>;
+  private queryRunner: QueryRunner<M>;
   private definitions?: M;
 
   private listeners: Partial<{
@@ -64,6 +64,12 @@ export class ComputeModule<M extends QueryResponseMapping> {
 
     const sourceCredentialsPath = process.env[ComputeModule.SOURCE_CREDENTIALS];
     this.sourceCredentials = sourceCredentialsPath != null ? new SourceCredentials(sourceCredentialsPath) : null;
+
+    this.queryRunner = new QueryRunner<M>(
+      this.listeners,
+      this.defaultListener,
+      this.logger
+    );
 
     if (process.env.NODE_ENV === "development") {
       console.warn("Inactive module - running in dev mode");
@@ -127,12 +133,6 @@ export class ComputeModule<M extends QueryResponseMapping> {
     }
 
     const computeModuleApi = new ComputeModuleApi(this.connectionInformation);
-    this.queryRunner = new QueryRunner<M>(
-      computeModuleApi,
-      this.listeners,
-      this.defaultListener,
-      this.logger
-    );
     this.queryRunner.on("responsive", () => {
       this.logger?.info("Module is responsive");
       if (this.definitions) {
@@ -148,7 +148,7 @@ export class ComputeModule<M extends QueryResponseMapping> {
         computeModuleApi.postSchema(schemas);
       }
     });
-    this.queryRunner.run();
+    this.queryRunner.run(computeModuleApi);
   }
 
   public async getCredential(sourceApiName: string, credentialName: string) {

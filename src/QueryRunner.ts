@@ -21,7 +21,6 @@ export class QueryRunner<M extends QueryResponseMapping> {
   private responsiveEventListeners: Set<() => void> = new Set();
 
   constructor(
-    private readonly computeModuleApi: ComputeModuleApi,
     private readonly listeners: Partial<{
       [K in keyof M]: QueryListener<Pick<M, K>>;
     }>,
@@ -29,10 +28,10 @@ export class QueryRunner<M extends QueryResponseMapping> {
     private readonly logger?: Logger
   ) {}
 
-  async run() {
+  async run(computeModuleApi: ComputeModuleApi) {
     while (true) {
       try {
-        const jobRequest = await this.computeModuleApi.getJobRequest();
+        const jobRequest = await computeModuleApi.getJobRequest();
 
         if (jobRequest.status === 200) {
           // If this is the first job, set the module as responsive
@@ -47,11 +46,11 @@ export class QueryRunner<M extends QueryResponseMapping> {
 
           if (listener != null) {
             listener(query).then((response) =>
-              this.computeModuleApi.postResult(jobId, response)
+              computeModuleApi.postResult(jobId, response)
             );
           } else if (this.defaultListener != null) {
-            this.defaultListener(query, queryType)?.then((response) =>
-              this.computeModuleApi.postResult(
+            this.defaultListener(query, queryType).then((response) =>
+              computeModuleApi.postResult(
                 jobId,
                 // Convert number to string as per response spec
                 typeof response === "number" ? response.toString() : response
