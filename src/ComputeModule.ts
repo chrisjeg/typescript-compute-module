@@ -50,7 +50,6 @@ export class ComputeModule<M extends QueryResponseMapping> {
   private connectionInformation?: ConnectionInformation;
   private logger?: Logger;
   private queryRunner?: QueryRunner<M>;
-  private sourceCredentials: SourceCredentials | null;
   private definitions?: M;
 
   private listeners: Partial<{
@@ -62,14 +61,15 @@ export class ComputeModule<M extends QueryResponseMapping> {
     this.logger =
       logger != null ? loggerToInstanceLogger(logger, instanceId) : undefined;
     this.definitions = definitions;
-    const connectionPath = process.env[ComputeModule.CONNECTION_ENV_VAR];
+
+    const sourceCredentialsPath = process.env[ComputeModule.SOURCE_CREDENTIALS];
+    this.sourceCredentials = sourceCredentialsPath != null ? new SourceCredentials(sourceCredentialsPath) : null;
 
     if (process.env.NODE_ENV === "development") {
       console.warn("Inactive module - running in dev mode");
       return;
     }
 
-    const connectionPath = process.env[ComputeModule.CONNECTION_ENV_VAR];
     const connectionPath = process.env[ComputeModule.CONNECTION_ENV_VAR];
     if (!connectionPath) {
       throw new Error(
