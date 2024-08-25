@@ -36,6 +36,12 @@ export interface ComputeModuleOptions<M extends QueryResponseMapping = any> {
    * Instance ID to use for logging, if not provided no instance ID will be added
    */
   instanceId?: string;
+  /**
+   * If the module should automatically register queries with the runtime, defaults to true.
+   * 
+   * Can be set to false to enable typesafety without registering the queries.
+   */
+  isAutoRegistered?: boolean;
 }
 
 export class ComputeModule<M extends QueryResponseMapping> {
@@ -47,16 +53,18 @@ export class ComputeModule<M extends QueryResponseMapping> {
   private logger?: Logger;
   private queryRunner: QueryRunner<M>;
   private definitions?: M;
+  private shouldAutoRegister: boolean;
 
   private listeners: Partial<{
     [K in keyof M]: QueryListener<Pick<M, K>>;
   }> = {};
   private defaultListener?: (data: any, queryName: string) => Promise<any>;
 
-  constructor({ logger, instanceId, definitions }: ComputeModuleOptions<M>) {
+  constructor({ logger, instanceId, definitions, isAutoRegistered }: ComputeModuleOptions<M>) {
     this.logger =
       logger != null ? loggerToInstanceLogger(logger, instanceId) : undefined;
     this.definitions = definitions;
+    this.shouldAutoRegister = isAutoRegistered ?? true;
 
     const sourceCredentialsPath = process.env[ComputeModule.SOURCE_CREDENTIALS];
     this.sourceCredentials =
@@ -130,7 +138,7 @@ export class ComputeModule<M extends QueryResponseMapping> {
 
     this.queryRunner.on("responsive", () => {
       this.logger?.info("Module is responsive");
-      if (this.definitions) {
+      if (this.definitions && this.shouldAutoRegister) {
         const schemas = Object.entries(this.definitions).map(
           ([queryName, query]) =>
             convertJsonSchemaToCustomSchema(
