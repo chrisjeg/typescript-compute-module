@@ -11,7 +11,7 @@ import {
 import { ComputeModuleApi } from "./api/ComputeModuleApi";
 import { convertJsonSchemaToCustomSchema } from "./api/convertJsonSchematoFoundrySchema";
 import { Static } from "@sinclair/typebox";
-import { SourceCredentials } from "./SourceCredentials";
+import { SourceCredentials } from "./sources/SourceCredentials";
 
 export interface ComputeModuleOptions<M extends QueryResponseMapping = any> {
   /**
@@ -36,7 +36,7 @@ export interface ComputeModuleOptions<M extends QueryResponseMapping = any> {
    */
   logger?: Logger;
   /**
-   * Instance ID to use for logging, if not provided, a random UUID will be generated.
+   * Instance ID to use for logging, if not provided no instance ID will be added
    */
   instanceId?: string;
 }
@@ -46,6 +46,7 @@ export class ComputeModule<M extends QueryResponseMapping> {
   // Path to the Source credentials file in Compute Modules
   private static SOURCE_CREDENTIALS = "SOURCE_CREDENTIALS";
 
+  private sourceCredentials: SourceCredentials | null;
   private connectionInformation?: ConnectionInformation;
   private logger?: Logger;
   private queryRunner?: QueryRunner<M>;
@@ -61,9 +62,7 @@ export class ComputeModule<M extends QueryResponseMapping> {
     this.logger =
       logger != null ? loggerToInstanceLogger(logger, instanceId) : undefined;
     this.definitions = definitions;
-
-    const sourceCredentialsPath = process.env[ComputeModule.SOURCE_CREDENTIALS];
-    this.sourceCredentials = sourceCredentialsPath != null ? new SourceCredentials(sourceCredentialsPath) : null;
+    const connectionPath = process.env[ComputeModule.CONNECTION_ENV_VAR];
 
     if (process.env.NODE_ENV === "development") {
       console.warn("Inactive module - running in dev mode");
@@ -71,9 +70,10 @@ export class ComputeModule<M extends QueryResponseMapping> {
     }
 
     const connectionPath = process.env[ComputeModule.CONNECTION_ENV_VAR];
+    const connectionPath = process.env[ComputeModule.CONNECTION_ENV_VAR];
     if (!connectionPath) {
       throw new Error(
-        "Connection path not found in environment variables, please set CONNECTION_TO_RUNTIME to the path of the connection file."
+        "Connection path not found in environment variables, please set CONNECTION_TO_RUNTIME to the path of the connection file. This may indicate that the runtime has not been included."
       );
     }
 
