@@ -66,5 +66,5 @@ Compute Modules can interact with resources in their execution environment, with
 
 ```ts
 const resourceId = await myModule.getResource("myResourceAlias");
-const result = await someDataFetcherForId("resourceId");
+const result = await someDataFetcherForId(resourceId);
 ```
