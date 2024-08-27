@@ -4,11 +4,15 @@ import {
   QueryResponseMapping,
   QueryRunner,
 } from "./QueryRunner";
-import { ComputeModuleApi, ConnectionInformation } from "./api/ComputeModuleApi";
+import {
+  ComputeModuleApi,
+  ConnectionInformation,
+} from "./api/ComputeModuleApi";
 import { convertJsonSchemaToCustomSchema } from "./api/convertJsonSchematoFoundrySchema";
 import { Static } from "@sinclair/typebox";
 import { SourceCredentials } from "./sources/SourceCredentials";
 import { waitForFile } from "./fs/waitForFile";
+import { ResourceAliases } from "./resources/ResourceAliases";
 
 export interface ComputeModuleOptions<M extends QueryResponseMapping = any> {
   /**
@@ -38,18 +42,20 @@ export interface ComputeModuleOptions<M extends QueryResponseMapping = any> {
   instanceId?: string;
   /**
    * If the module should automatically register queries with the runtime, defaults to true.
-   * 
+   *
    * Can be set to false to enable typesafety without registering the queries.
    */
   isAutoRegistered?: boolean;
 }
 
 export class ComputeModule<M extends QueryResponseMapping> {
+  // Known mounted files
   private static CONNECTION_ENV_VAR = "CONNECTION_TO_RUNTIME";
-  // Path to the Source credentials file in Compute Modules
   private static SOURCE_CREDENTIALS = "SOURCE_CREDENTIALS";
+  private static RESOURCE_ALIAS_MAP = "RESOURCE_ALIAS_MAP";
 
   private sourceCredentials: SourceCredentials | null;
+  private resourceAliases: ResourceAliases | null;
   private logger?: Logger;
   private queryRunner: QueryRunner<M>;
   private definitions?: M;
@@ -60,7 +66,12 @@ export class ComputeModule<M extends QueryResponseMapping> {
   }> = {};
   private defaultListener?: (data: any, queryName: string) => Promise<any>;
 
-  constructor({ logger, instanceId, definitions, isAutoRegistered }: ComputeModuleOptions<M>) {
+  constructor({
+    logger,
+    instanceId,
+    definitions,
+    isAutoRegistered,
+  }: ComputeModuleOptions<M>) {
     this.logger =
       logger != null ? loggerToInstanceLogger(logger, instanceId) : undefined;
     this.definitions = definitions;
@@ -70,6 +81,12 @@ export class ComputeModule<M extends QueryResponseMapping> {
     this.sourceCredentials =
       sourceCredentialsPath != null
         ? new SourceCredentials(sourceCredentialsPath)
+        : null;
+
+    const resourceAliasMap = process.env[ComputeModule.RESOURCE_ALIAS_MAP];
+    this.resourceAliases =
+      resourceAliasMap != null
+        ? new ResourceAliases(resourceAliasMap, this.logger)
         : null;
 
     this.queryRunner = new QueryRunner<M>(
@@ -92,7 +109,9 @@ export class ComputeModule<M extends QueryResponseMapping> {
 
     waitForFile<ConnectionInformation>(connectionPath).then(
       (connectionInformation) => {
-        this.logger?.info("Connection information loaded > Initializing listeners...");
+        this.logger?.info(
+          "Connection information loaded > Initializing listeners..."
+        );
         this.initialize(connectionInformation);
       }
     );
@@ -166,5 +185,14 @@ export class ComputeModule<M extends QueryResponseMapping> {
       );
     }
     return this.sourceCredentials.getCredential(sourceApiName, credentialName);
+  }
+
+  public async getResource(alias: string) {
+    if (this.resourceAliases == null) {
+      throw new Error(
+        "No resource aliases mounted. This implies the RESOURCE_ALIAS_MAP environment variable has not been set, ensure you have set resources mounted on the Compute Module."
+      );
+    }
+    return this.resourceAliases.getAlias(alias);
   }
 }

@@ -59,3 +59,12 @@ const myCredential = await myModule.getCredential(
 ```
 
 As a file is mounted at runtime, getCredential returns a promise that will resolve once the file is mounted to avoid race conditions.
+
+### Retrieving aliases
+
+Compute Modules can interact with resources in their execution environment, within Palantir Foundry these are defined as inputs and outputs on the Compute Module spec. Resource identifiers can be unique to the execution environment, so using aliases allows your code to maintain a static reference to known resources. To receive the identifier for an aliases resource, use the `getResource` method.
+
+```ts
+const resourceId = await myModule.getResource("myResourceAlias");
+const result = await someDataFetcherForId("resourceId");
+```
