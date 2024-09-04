@@ -10,7 +10,7 @@
     "prepublishOnly": "tsc"
   },
   "dependencies": {
-    "@sinclair/typebox": "^0.32.33",
+    "@sinclair/typebox": "^0.32.35",
     "axios": "^1.6.7"
   },
   "devDependencies": {

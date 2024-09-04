@@ -68,3 +68,13 @@ Compute Modules can interact with resources in their execution environment, with
 const resourceId = await myModule.getResource("myResourceAlias");
 const result = await someDataFetcherForId(resourceId);
 ```
+
+## Developing the SDK
+
+### Building the example module
+
+Run docker build from the top-level directory (not example-module):
+
+```sh
+docker build -f example-module/Dockerfile -t my-container-registry.palantirfoundry.com/example-module:0.0.1 .
+```

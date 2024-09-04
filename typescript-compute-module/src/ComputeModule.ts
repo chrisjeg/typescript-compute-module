@@ -49,10 +49,16 @@ export interface ComputeModuleOptions<M extends QueryResponseMapping = any> {
 }
 
 export class ComputeModule<M extends QueryResponseMapping> {
+  // Environment variables
+  private static GET_JOB_URI = "GET_JOB_URI";
+  private static POST_RESULT_URI = "POST_RESULT_URI";
+  private static POST_SCHEMA_URI = "POST_SCHEMA_URI";
+
   // Known mounted files
-  private static CONNECTION_ENV_VAR = "CONNECTION_TO_RUNTIME";
   private static SOURCE_CREDENTIALS = "SOURCE_CREDENTIALS";
   private static RESOURCE_ALIAS_MAP = "RESOURCE_ALIAS_MAP";
+  private static DEFAULT_CA_PATH = "DEFAULT_CA_PATH";
+  private static MODULE_AUTH_TOKEN = "MODULE_AUTH_TOKEN";
 
   private sourceCredentials: SourceCredentials | null;
   private resourceAliases: ResourceAliases | null;
@@ -100,21 +106,7 @@ export class ComputeModule<M extends QueryResponseMapping> {
       return;
     }
 
-    const connectionPath = process.env[ComputeModule.CONNECTION_ENV_VAR];
-    if (!connectionPath) {
-      throw new Error(
-        "Connection path not found in environment variables, please set CONNECTION_TO_RUNTIME to the path of the connection file. This may indicate that the runtime has not been included."
-      );
-    }
-
-    waitForFile<ConnectionInformation>(connectionPath).then(
-      (connectionInformation) => {
-        this.logger?.info(
-          "Connection information loaded > Initializing listeners..."
-        );
-        this.initialize(connectionInformation);
-      }
-    );
+    this.initialize();
   }
 
   /**
@@ -152,8 +144,18 @@ export class ComputeModule<M extends QueryResponseMapping> {
     return this;
   }
 
-  private async initialize(connectionInformation: ConnectionInformation) {
-    const computeModuleApi = new ComputeModuleApi(connectionInformation);
+  private async initialize() {
+    const computeModuleApi = new ComputeModuleApi({
+      getJobUri: process.env[ComputeModule.GET_JOB_URI] ?? "",
+      postResultUri: process.env[ComputeModule.POST_RESULT_URI] ?? "",
+      postSchemaUri: process.env[ComputeModule.POST_SCHEMA_URI] ?? "",
+      trustStore: waitForFile(
+        process.env[ComputeModule.DEFAULT_CA_PATH] ?? ""
+      ),
+      moduleAuthToken: waitForFile(
+        process.env[ComputeModule.MODULE_AUTH_TOKEN] ?? ""
+      ),
+    });
 
     this.queryRunner.on("responsive", () => {
       this.logger?.info("Module is responsive");

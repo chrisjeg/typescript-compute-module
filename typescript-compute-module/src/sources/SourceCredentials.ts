@@ -1,4 +1,4 @@
-import { waitForFile } from "../fs/waitForFile";
+import { waitForJsonFile } from "../fs/waitForFile";
 import { Logger } from "../logger";
 
 export interface SourceCredentialsFile {
@@ -22,7 +22,7 @@ export class SourceCredentials {
     }
 
     private async loadSourceCredentials(): Promise<SourceCredentialsFile> {
-        const content = await waitForFile<SourceCredentialsFile>(this.credentialPath);
+        const content = await waitForJsonFile<SourceCredentialsFile>(this.credentialPath);
         this.logger?.log(`Loaded credentials: ${JSON.stringify(mapValues(content, obfuscateValues))}`)
         return content;
     }
