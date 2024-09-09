@@ -1,4 +1,4 @@
-import { waitForFile } from "../fs/waitForFile";
+import { waitForJsonFile } from "../fs/waitForFile";
 import { Logger } from "../logger";
 
 export interface ResourceAliasesFile {
@@ -25,7 +25,7 @@ export class ResourceAliases {
   }
 
   private async loadResourceAliases(): Promise<ResourceAliasesFile> {
-    const content = await waitForFile<ResourceAliasesFile>(
+    const content = await waitForJsonFile<ResourceAliasesFile>(
       this.resourceAliasesPath
     );
     this.logger?.log(`Loaded resource aliases: ${JSON.stringify(content)}`);

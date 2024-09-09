@@ -1,4 +1,4 @@
-import { waitForFile } from "../../fs/waitForFile";
+import { waitForFile } from "../../../typescript-compute-module/fs/waitForFile";
 import { Logger } from "../../logger";
 import { SourceCredentials, SourceCredentialsFile } from "../SourceCredentials";
 
