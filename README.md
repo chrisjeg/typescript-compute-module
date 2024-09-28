@@ -1,3 +1,7 @@
+# Deprecated
+
+**This repository is no longer maintained and is considered deprecated in favour of [@palantir/compute-module](https://github.com/palantir/typescript-compute-module). Please do not use it for new projects. To use Palantir's version as a drop in replacement `npm install @palantir/compute-module@0.1`**
+
 # @chrisjeg/compute-module
 
 [![npm version](https://img.shields.io/npm/v/%40chrisjeg%2Fcompute-module?style=flat)](https://www.npmjs.com/package/@chrisjeg/compute-module)
